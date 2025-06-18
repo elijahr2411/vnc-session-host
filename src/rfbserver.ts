@@ -52,20 +52,28 @@ export class RFBServer {
                 return;
             }
             (socket as any).rfbVersion = rfbVersion;
-            // VeNCrypt security type
+
+            // RFB 3.3 is unsupported
             if (rfbVersion == 'RFB 003.003\n') {
-                let buf = Buffer.alloc(4);
-                buf.writeUint32BE(19, 0);
+                let error = 'Unsupported protocol version.';
+                let buf = Buffer.alloc(8 + error.length);
+                buf.writeUint32BE(0, 0);
+                buf.writeUint32BE(error.length, 4);
+                buf.write(error, 8, 'utf8');
                 socket.write(buf);
-            } else {
-                socket.write(Buffer.from([1, 19]));
-                // Read security type from client
-                let clientType = await buffer.readUInt8();
-                if (clientType != 19) {
-                    socket.end();
-                    logger.error('Invalid security type %s', clientType);
-                    return;
-                }
+                socket.end();
+                logger.error('RFB 3.3 is not supported.');
+                return;
+            }
+
+            // VeNCrypt security type
+            socket.write(Buffer.from([1, 19]));
+            // Read security type from client
+            let clientType = await buffer.readUInt8();
+            if (clientType != 19) {
+                socket.end();
+                logger.error('Invalid security type %s', clientType);
+                return;
             }
             // Write VeNCrypt version
             socket.write(Buffer.from([0, 2]));
