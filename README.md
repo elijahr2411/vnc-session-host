@@ -2,6 +2,13 @@
 
 A VNC server wrapper that allows multiple users on the system to have detachable VNC sessions using their username and password. Similar in functionality to Remote Desktop Session Host on Windows Server
 
+## Client Compatibility
+
+This server should work with any client that supports the X509Plain security type. Out of the major servers, this seems to consist of:
+
+- TigerVNC
+- UltraVNC
+
 ## Usage
 
 This server must be run as root and requires tigervnc to be installed with the `Xvnc` binary available.
