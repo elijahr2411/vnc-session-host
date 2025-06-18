@@ -25,9 +25,11 @@ export class XSessionManager {
                 let rfbSocket = `/tmp/rfb-${username}.sock`;
                 // Start VNC server
                 let xvnc = execa('su', ['-l', username, '-c', `Xvnc -SecurityTypes None -RfbPort -1 -RfbUnixPath '${rfbSocket}' :${display}`], { stdout: 'pipe', stderr: 'pipe' });
+                xvnc.catch(() => true);
                 xvnc.on('spawn', () => {
                     // Start X session
                     let xsession = execa('su', ['-l', username, '-c', `cd "$HOME"; export DISPLAY=:${display}; if [[ -f "$HOME/.xinitrc" ]]; then source "$HOME/.xinitrc"; else source "/etc/X11/xinit/xinitrc"; fi`]);
+                    xsession.catch(() => true);
                     xsession.on('exit', () => xvnc.kill('SIGTERM'));  
                     xvnc.stderr.on('data', (data) => {
                         if (data.toString('utf8').includes('Listening for VNC connections')) {
